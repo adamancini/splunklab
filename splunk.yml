@@ -1,37 +1,48 @@
 version: "3.3"
 services:
+  server:
+    image: splunk/splunk:7.0.0-monitor
+    deploy:
+      placement:
+        constraints:
+          - 'node.hostname == ucp-node1'
+    environment:
+      SPLUNK_START_ARGS: '--accept-license --answer-yes'
+      SPLUNK_ENABLE_LISTEN: '9997'
+      SPLUNK_ADD: tcp 1514
+    volumes:
+      - splunk_etc:/opt/splunk/etc
+      - splunk_var:/opt/splunk/var
+    ports:
+      - 9997:9997
+      - 8000:8000
+      - 8088:8088
+      - 1514:1514
+    networks:
+      splunk:
+
   monitor:
     image: splunk/universalforwarder:7.0.0-monitor
     deploy:
       mode: global
     environment:
-      SPLUNK_START_ARGS: '--accept-license'
+      SPLUNK_START_ARGS: '--accept-license --answer-yes'
       SPLUNK_USER: 'root'
-      SPLUNK_FORWARD_SERVER: 'ucp.landrush:9997'
+      SPLUNK_FORWARD_SERVER: 'server:9997'
     volumes:
-      - /var/lib/docker/containers:/host/containers:ro
-      - /var/log:/docker/log:ro
+      - splunkuf_etc:/opt/splunk/etc
+      - splunkuf_var:/opt/splunk/var
+      # - /var/lib/docker/containers:/host/containers:ro
+      - /var/log:/host/var/log:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    networks:
-      splunk:
-
-  server:
-    image: splunk/splunk
-    deploy:
-      placement:
-        constraints:
-          - 'node.role == manager'
-    environment:
-      SPLUNK_START_ARGS: '--accept-license'
-      SPLUNK_ENABLE_LISTEN: '9997'
-    volumes:
-      - /opt/splunk/etc/:/opt/splunk/etc/
-      - /opt/splunk/var/:/opt/splunk/var/
-    ports:
-      - 9997:9997
-      - 8000:8000
     networks:
       splunk:
 
 networks:
    splunk:
+
+volumes:
+  splunkuf_etc:
+  splunkuf_var:
+  splunk_etc:
+  splunk_var:
