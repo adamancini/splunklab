@@ -1,7 +1,16 @@
 version: '3.3'
 services:
-  noisy:
-    image: busybox
-    command: sh -c 'while true; do echo "$(hostname) says hi"; done;'
+  web:
+    image: nginx
+    ports:
+      - 8080:80
     deploy:
       replicas: 3
+    logging:
+      driver: splunk
+      options:
+        splunk-token: 504f4de8-8199-490a-b486-1414e550c0b7
+        splunk-url: https://ucp-node1:8088
+        splunk-insecureskipverify: "true"
+        tag: "{{.Name}}/{{.FullID}}"
+        splunk-sourcetype: catalina
