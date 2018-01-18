@@ -1,0 +1,7 @@
+version: '3.3'
+services:
+  noisy:
+    image: busybox
+    command: sh -c 'while true; do echo "$(hostname) says hi"; done;'
+    deploy:
+      replicas: 3
